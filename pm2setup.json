@@ -1,0 +1,11 @@
+{
+  "apps": [{
+    "name"    : "oidc-example",
+    "script"  : "./dist/index.js",
+    "watch"   : ["dist"],
+    "env": {
+      "NODE_ENV": "development",
+      "PORT"    : 1337
+    }
+  }]
+}
