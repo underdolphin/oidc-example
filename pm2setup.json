@@ -3,6 +3,7 @@
     "name"    : "oidc-example",
     "script"  : "./dist/index.js",
     "watch"   : ["dist"],
+    "ignore_watch" : ["node_modules", "dist/view"],
     "env": {
       "NODE_ENV": "development",
       "PORT"    : 1337

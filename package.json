@@ -51,8 +51,10 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "@types/pug": "^2.0.3",
     "express": "^4.14.0",
     "oidc-provider": "^1.4.2",
+    "pug": "^2.0.0-beta6",
     "sqlite3": "^3.1.8"
   }
 }
