@@ -27,50 +27,44 @@ const htmlmin = require('gulp-htmlmin');
 const rename = require('gulp-rename');
 const browserSync = require('browser-sync').create();
 const reload = browserSync.reload;
+const del = require('del');
 
 const tsProject = gulpts.createProject('tsconfig.json', {
     typescript: require('typescript'),
     module: "commonjs"
 });
 
-const testsProject = gulpts.createProject('tsconfig.json', {
-    typescript: require('typescript'),
-    module: "commonjs"
-});
-
-const clientProject = gulpts.createProject('tsconfig.json', {
+const testProject = gulpts.createProject('tsconfig.json', {
     typescript: require('typescript'),
     module: "commonjs"
 });
 
 gulp.task('pug', () => {
-    gulp.src('src/view/**/*.pug')
+    gulp.src('src/view/**/*.pug', {
+            base: 'src'
+        })
         .pipe(plumber())
-        .pipe(gulp.dest('./dist/view/'));
+        .pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('html', () => {
-    gulp.src('src/view/**/*.html')
+    gulp.src('src/view/**/*.html', {
+            base: 'src'
+        })
         .pipe(plumber())
         .pipe(htmlmin({
             collapseWhitespace: true
         }))
-        .pipe(gulp.dest('./dist/view/'));
+        .pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('css', () => {
-    gulp.src('src/view/**/*.css')
+    gulp.src('src/view/**/*.css', {
+            base: 'src'
+        })
         .pipe(plumber())
         .pipe(cleancss())
-        .pipe(gulp.dest('./dist/view/'));
-});
-
-gulp.task('clientCompile', () => {
-    gulp.src('src/view/**/*.ts')
-        .pipe(plumber())
-        .pipe(clientProject())
-        .js
-        .pipe(gulp.dest('./build/view'));
+        .pipe(gulp.dest('./dist/'));
 });
 
 gulp.task('browser-sync', function () {
@@ -80,8 +74,20 @@ gulp.task('browser-sync', function () {
     });
 });
 
+gulp.task('testCompile', () => {
+    gulp.src('src/test/**/*.ts', {
+            base: 'src'
+        })
+        .pipe(plumber())
+        .pipe(testProject())
+        .js
+        .pipe(gulp.dest('./build/'));
+});
+
 gulp.task('tsCompile', () => {
-    gulp.src('src/**/*.ts')
+    gulp.src(['src/index.ts', 'src/app/**/*.ts', 'src/view/**/*.ts'], {
+            base: 'src'
+        })
         .pipe(plumber())
         .pipe(tsProject())
         .js
@@ -102,14 +108,9 @@ gulp.task('browserify', () => {
 });
 
 gulp.task('server:uglify', () => {
-    gulp.src(['./build/app/**/*.js'])
-        .pipe(plumber())
-        .pipe(uglify())
-        .pipe(gulp.dest('./dist/app'))
-});
-
-gulp.task('indexjs:uglify', () => {
-    gulp.src(['./build/index.js'])
+    gulp.src(['./build/app/**/*.js', './build/index.js'], {
+            base: 'build'
+        })
         .pipe(plumber())
         .pipe(uglify())
         .pipe(gulp.dest('./dist/'))
@@ -137,15 +138,18 @@ gulp.task('watch', () => {
     gulp.watch('src/view/**/*.html', ['html', reload]);
     gulp.watch('src/view/**/*.pug', ['pug', reload]);
     gulp.watch('src/view/**/*.css', ['css', reload]);
-    gulp.watch('src/view/**/*.ts', ['clientCompile']);
-    gulp.watch(['src/index.ts', 'src/app/**/*.ts', 'src/test/**/*.ts'], ['tsCompile']);
-    gulp.watch('build/index.js', ['indexjs:uglify']);
+    gulp.watch(['src/test/**/*.ts'], ['testCompile']);
+    gulp.watch(['src/index.ts', 'src/app/**/*.ts', 'src/view/**/*.ts'], ['tsCompile']);
     gulp.watch(['build/index.js', 'build/app/**/*.js'], ['server:uglify']);
     gulp.watch('build/test/**/*.js', ['testify']);
     gulp.watch('build/view/**/*.js', ['browserify', reload]);
     gulp.watch('test/testlib.min.js', ['test']);
 });
 
-gulp.task('default', ['browser-sync', 'tsCompile', 'html', 'pug', 'css', 'clientCompile', 'server:uglify', 'testify', 'browserify'], () => {
+gulp.task('default', ['browser-sync', 'testCompile', 'tsCompile', 'html', 'pug', 'css', 'server:uglify', 'testify', 'browserify'], () => {
     gulp.start('watch');
+});
+
+gulp.task('clean', () => {
+    del(['build', 'dist', 'test']);
 });
